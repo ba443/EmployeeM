@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الموظفين</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button.secondary {
+            background-color: #95a5a6;
+        }
+        
+        button.secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        button.danger {
+            background-color: #e74c3c;
+        }
+        
+        button.danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-container input {
+            flex: 1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media screen and (max-width: 600px) {
+            .btn-container {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 14px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>نظام إدارة الموظفين</h1>
+        
+        <div id="message" class="message" style="display: none;"></div>
+        
+        <div class="form-group">
+            <label for="name">اسم الموظف:</label>
+            <input type="text" id="name" placeholder="أدخل اسم الموظف" />
+        </div>
+        
+        <div class="form-group">
+            <label for="id">رقم الموظف:</label>
+            <input type="number" id="id" placeholder="أدخل رقم الموظف" />
+        </div>
+        
+        <div class="btn-container">
+            <button id="add-btn">إضافة موظف</button>
+            <button id="update-btn" class="secondary" disabled>تحديث</button>
+            <button id="cancel-btn" class="secondary" style="display: none;">إلغاء</button>
+            <button id="save-btn">حفظ البيانات</button>
+            <button id="load-btn">تحميل البيانات</button>
+            <button id="clear-btn" class="danger">مسح الكل</button>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="search" placeholder="ابحث باسم الموظف أو الرقم" />
+            <button id="search-btn">بحث</button>
+            <button id="reset-search-btn" class="secondary">إعادة تعيين</button>
+        </div>
+        
+        <table id="employees-table">
+            <thead>
+                <tr>
+                    <th>رقم الموظف</th>
+                    <th>اسم الموظف</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="employees-list">
+                <!-- سيتم إضافة بيانات الموظفين هنا -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // تعريف المتغيرات الرئيسية
+        let employees = [];
+        let editingIndex = -1;
+        
+        // الحصول على العناصر من DOM
+        const nameInput = document.getElementById('name');
+        const idInput = document.getElementById('id');
+        const addBtn = document.getElementById('add-btn');
+        const updateBtn = document.getElementById('update-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const searchInput = document.getElementById('search');
+        const searchBtn = document.getElementById('search-btn');
+        const resetSearchBtn = document.getElementById('reset-search-btn');
+        const employeesList = document.getElementById('employees-list');
+        const messageDiv = document.getElementById('message');
+        
+        // إضافة موظف جديد
+        function addEmployee() {
+            const name = nameInput.value.trim();
+            const id = idInput.value.trim();
+            
+            if (!name || !id) {
+                showMessage('يرجى تعبئة جميع الحقول', 'error');
+                return;
+            }
+            
+            // التحقق من عدم تكرار رقم الموظف
+            if (employees.some(emp => emp.id === id && employees.indexOf(emp) !== editingIndex)) {
+                showMessage('رقم الموظف موجود بالفعل', 'error');
+                return;
+            }
+            
+            if (editingIndex === -1) {
+                // إضافة موظف جديد
+                employees.push({ name, id });
+                showMessage('تمت إضافة الموظف بنجاح', 'success');
+            } else {
+                // تحديث موظف موجود
+                employees[editingIndex] = { name, id };
+                showMessage('تم تحديث بيانات الموظف بنجاح', 'success');
+                
+                // إعادة تعيين وضع التحرير
+                editingIndex = -1;
+                addBtn.textContent = 'إضافة موظف';
+                updateBtn.disabled = true;
+                cancelBtn.style.display = 'none';
+            }
+            
+            // مسح حقول الإدخال
+            nameInput.value = '';
+            idInput.value = '';
+            
+            // تحديث جدول الموظفين
+            renderEmployees();
+        }
+        
+        // عرض الموظفين في الجدول
+        function renderEmployees(employeesToRender = employees) {
+            employeesList.innerHTML = '';
+            
+            if (employeesToRender.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="3" style="text-align: center;">لا يوجد موظفين</td>`;
+                employeesList.appendChild(emptyRow);
+                return;
+            }
+            
+            employeesToRender.forEach((emp, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${emp.id}</td>
+                    <td>${emp.name}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" data-index="${employees.indexOf(emp)}">تعديل</button>
+                        <button class="delete-btn danger" data-index="${employees.indexOf(emp)}">حذف</button>
+                    </td>
+                `;
+                employeesList.appendChild(row);
+            });
+            
+            // إضافة مستمعي الأحداث لأزرار التعديل والحذف
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', handleEdit);
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', handleDelete);
+            });
+        }
+        
+        // البحث عن موظف
+        function searchEmployees() {
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            
+            if (!searchTerm) {
+                renderEmployees();
+                return;
+            }
+            
+            const filteredEmployees = employees.filter(emp => 
+                emp.name.toLowerCase().includes(searchTerm) || 
+                emp.id.includes(searchTerm)
+            );
+            
+            renderEmployees(filteredEmployees);
+            
+            if (filteredEmployees.length === 0) {
+                showMessage('لا توجد نتائج للبحث', 'error');
+            }
+        }
+        
+        // تحرير بيانات موظف
+        function handleEdit(e) {
+            const index = parseInt(e.target.dataset.index);
+            const employee = employees[index];
+            
+            nameInput.value = employee.name;
+            idInput.value = employee.id;
+            
+            editingIndex = index;
+            addBtn.textContent = 'حفظ التغييرات';
+            updateBtn.disabled = false;
+            cancelBtn.style.display = 'block';
+        }
+        
+        // حذف موظف
+        function handleDelete(e) {
+            if (confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+                const index = parseInt(e.target.dataset.index);
+                employees.splice(index, 1);
+                renderEmployees();
+                showMessage('تم حذف الموظف بنجاح', 'success');
+            }
+        }
+        
+        // إلغاء التحرير
+        function cancelEdit() {
+            nameInput.value = '';
+            idInput.value = '';
+            
+            editingIndex = -1;
+            addBtn.textContent = 'إضافة موظف';
+            updateBtn.disabled = true;
+            cancelBtn.style.display = 'none';
+        }
+        
+        // حفظ البيانات في ملف
+        function saveData() {
+            if (employees.length === 0) {
+                showMessage('لا توجد بيانات للحفظ', 'error');
+                return;
+            }
+            
+            const data = JSON.stringify(employees, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'بيانات_الموظفين.json';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showMessage('تم حفظ البيانات بنجاح', 'success');
+        }
+        
+        // تحميل البيانات من ملف
+        function loadData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (Array.isArray(data)) {
+                            employees = data;
+                            renderEmployees();
+                            showMessage('تم تحميل البيانات بنجاح', 'success');
+                        } else {
+                            throw new Error('تنسيق الملف غير صحيح');
+                        }
+                    } catch (error) {
+                        showMessage('خطأ في قراءة الملف: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            input.click();
+        }
+        
+        // مسح جميع البيانات
+        function clearAllData() {
+            if (confirm('هل أنت متأكد من مسح جميع البيانات؟')) {
+                employees = [];
+                renderEmployees();
+                showMessage('تم مسح جميع البيانات', 'success');
+            }
+        }
+        
+        // عرض رسالة للمستخدم
+        function showMessage(message, type) {
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // إضافة مستمعي الأحداث
+        addBtn.addEventListener('click', addEmployee);
+        updateBtn.addEventListener('click', addEmployee);
+        cancelBtn.addEventListener('click', cancelEdit);
+        saveBtn.addEventListener('click', saveData);
+        loadBtn.addEventListener('click', loadData);
+        clearBtn.addEventListener('click', clearAllData);
+        searchBtn.addEventListener('click', searchEmployees);
+        resetSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            renderEmployees();
+        });
+        
+        // عرض قائمة الموظفين عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEmployees();
+        });
+    </script>
+</body>
+</html>
