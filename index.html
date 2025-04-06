@@ -174,8 +174,8 @@
         </div>
         
         <div class="form-group">
-            <label for="id">رقم الموظف:</label>
-            <input type="number" id="id" placeholder="أدخل رقم الموظف" />
+            <label for="id">رقم الهاتف:</label>
+            <input type="text" id="id" placeholder="أدخل رقم الهاتف" />
         </div>
         
         <div class="btn-container">
@@ -196,7 +196,7 @@
         <table id="employees-table">
             <thead>
                 <tr>
-                    <th>رقم الموظف</th>
+                    <th>رقم الهاتف</th>
                     <th>اسم الموظف</th>
                     <th>الإجراءات</th>
                 </tr>
@@ -209,7 +209,18 @@
 
     <script>
         // تعريف المتغيرات الرئيسية
-        let employees = [];
+        let employees = [
+            { id: "0555123456", name: "محمد عبدالله القحطاني" },
+            { id: "0505789123", name: "أحمد سعيد الغامدي" },
+            { id: "0557891234", name: "خالد سلمان العتيبي" },
+            { id: "0545678912", name: "سعد محمد الدوسري" },
+            { id: "0558123456", name: "فهد راشد الشمري" },
+            { id: "0509876543", name: "عبدالرحمن علي الزهراني" },
+            { id: "0569871234", name: "نورة محمد السبيعي" },
+            { id: "0554321987", name: "فاطمة أحمد الحربي" },
+            { id: "0535678912", name: "هند سعود المالكي" },
+            { id: "0551234567", name: "منيرة صالح العنزي" }
+        ];
         let editingIndex = -1;
         
         // الحصول على العناصر من DOM
@@ -234,6 +245,13 @@
             
             if (!name || !id) {
                 showMessage('يرجى تعبئة جميع الحقول', 'error');
+                return;
+            }
+            
+            // التحقق من صحة رقم الهاتف السعودي
+            const phoneRegex = /^(05)[0-9]{8}$/;
+            if (!phoneRegex.test(id)) {
+                showMessage('يرجى إدخال رقم هاتف سعودي صحيح (يبدأ بـ 05 ويتكون من 10 أرقام)', 'error');
                 return;
             }
             
